@@ -35,7 +35,7 @@ const CartPage = () => {
 
   const handleQuantityChange = (id: number, quantity: number) => {
     const updatedItems = cartItems.map((item) =>
-      item.id === id ? { ...item, quantity } : item
+      item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
     );
     setCartItems(updatedItems);
   };
@@ -73,20 +73,20 @@ const CartPage = () => {
             </div>
             <span>${item.price}</span>
 
-            <div className="text-right">
-              <select
-                value={item.quantity}
-                onChange={(e) =>
-                  handleQuantityChange(item.id, Number(e.target.value))
-                }
-                className="border rounded py-1 px-2"
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                className="border rounded px-3 py-1 bg-gray-200 hover:bg-gray-300"
               >
-                {[...Array(10)].map((_, i) => (
-                  <option key={i} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
+                -
+              </button>
+              <span className="w-8 text-center">{item.quantity}</span>
+              <button
+                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                className="border rounded px-3 py-1 bg-gray-200 hover:bg-gray-300"
+              >
+                +
+              </button>
             </div>
           </div>
         ))}
@@ -102,7 +102,7 @@ const CartPage = () => {
         <button className="border text-black p-4">Update Cart</button>
       </div>
 
-      <BillingForm/>
+      <BillingForm />
     </div>
   );
 };

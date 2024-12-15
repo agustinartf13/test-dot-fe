@@ -17,11 +17,13 @@ const FormProvinces: React.FC = () => {
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingProvinces, setLoadingProvinces] = useState<boolean>(true);
+  const [loadingCities, setLoadingCities] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProvinces = async () => {
+      setLoadingProvinces(true);
       try {
         const response = await axios.get<{
           rajaongkir: { results: Province[] };
@@ -32,7 +34,7 @@ const FormProvinces: React.FC = () => {
       } catch (err) {
         setError((err as Error).message || "Failed to fetch provinces");
       } finally {
-        setLoading(false);
+        setLoadingProvinces(false);
       }
     };
 
@@ -40,6 +42,7 @@ const FormProvinces: React.FC = () => {
   }, []);
 
   const fetchCities = async (provinceId: string) => {
+    setLoadingCities(true);
     try {
       const response = await axios.get<{
         rajaongkir: { results: City[] };
@@ -49,6 +52,8 @@ const FormProvinces: React.FC = () => {
       setCities(response.data.rajaongkir.results);
     } catch (err) {
       setError((err as Error).message || "Failed to fetch cities");
+    } finally {
+      setLoadingCities(false);
     }
   };
 
@@ -59,45 +64,64 @@ const FormProvinces: React.FC = () => {
     else setCities([]);
   };
 
-
   return (
     <div className="w-full space-y-4">
+      {error && <p className="text-red-500">{error}</p>}
+
       {/* Dropdown Provinsi */}
       <div className="relative">
-        <select
-          className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black-400 focus:border-black-500 appearance-none bg-white"
-          onChange={handleProvinceChange}
-        >
-          <option value="">Pilih Provinsi</option>
-          {provinces.map((province) => (
-            <option key={province.province_id} value={province.province_id}>
-              {province.province}
-            </option>
-          ))}
-        </select>
+        {loadingProvinces ? (
+          <div className="w-full text-center p-3 text-gray-500">
+            Loading provinces...
+          </div>
+        ) : (
+          <select
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black-400 focus:border-black-500 appearance-none bg-white"
+            onChange={handleProvinceChange}
+          >
+            <option value="">Pilih Provinsi</option>
+            {provinces.map((province) => (
+              <option key={province.province_id} value={province.province_id}>
+                {province.province}
+              </option>
+            ))}
+          </select>
+        )}
 
         {/* Panah Kustom */}
-        <FaChevronDown className="absolute top-4 right-4 w-5 h-5 text-gray-400 pointer-events-none" />
+        {!loadingProvinces && (
+          <FaChevronDown className="absolute top-4 right-4 w-5 h-5 text-gray-400 pointer-events-none" />
+        )}
       </div>
 
       {/* Dropdown Kota */}
       <div className="relative">
-        <select
-          className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black-400 focus:border-black-500 appearance-none bg-white"
-          disabled={!selectedProvince}
-        >
-          <option value="">
-            {selectedProvince ? "Pilih Kota" : "Pilih Provinsi Terlebih Dahulu"}
-          </option>
-          {cities.map((city) => (
-            <option key={city.city_id} value={city.city_id}>
-              {city.city_name}
+        {loadingCities ? (
+          <div className="w-full text-center p-3 text-gray-500">
+            Loading cities...
+          </div>
+        ) : (
+          <select
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black-400 focus:border-black-500 appearance-none bg-white"
+            disabled={!selectedProvince || loadingCities}
+          >
+            <option value="">
+              {selectedProvince
+                ? "Pilih Kota"
+                : "Pilih Provinsi Terlebih Dahulu"}
             </option>
-          ))}
-        </select>
+            {cities.map((city) => (
+              <option key={city.city_id} value={city.city_id}>
+                {city.city_name}
+              </option>
+            ))}
+          </select>
+        )}
 
         {/* Panah Kustom */}
-        <FaChevronDown className="absolute top-4 right-4 w-5 h-5 text-gray-400 pointer-events-none" />
+        {!loadingCities && (
+          <FaChevronDown className="absolute top-4 right-4 w-5 h-5 text-gray-400 pointer-events-none" />
+        )}
       </div>
     </div>
   );
